@@ -351,6 +351,8 @@ pub fn generate_signatures_for_any_proof(
 
 #[cfg(test)]
 mod test {
+    use ark_ec::CurveGroup;
+    use hex;
     use std::collections::HashMap;
 
     use crate::chunk::api::generate_signatures_for_any_proof;
@@ -359,7 +361,7 @@ mod test {
     use crate::chunk::wrap_wots::{byte_array_to_wots256_sig, byte_array_to_wots_hash_sig};
     use crate::signatures::wots_api::{wots256, wots_hash};
     use ark_bn254::Bn254;
-    use ark_ff::UniformRand;
+    use ark_ff::{PrimeField, UniformRand};
     use ark_serialize::CanonicalDeserialize;
     use bitcoin::ScriptBuf;
     use rand::{Rng, SeedableRng};
@@ -575,8 +577,21 @@ mod test {
 
         let proof: ark_groth16::Proof<Bn254> =
             ark_groth16::Proof::deserialize_uncompressed(&proof_bytes[..]).unwrap();
-        let vk: ark_groth16::VerifyingKey<Bn254> =
+        let mut vk: ark_groth16::VerifyingKey<Bn254> =
             ark_groth16::VerifyingKey::deserialize_uncompressed(&vk_bytes[..]).unwrap();
+
+        // this should be obtained from ENV or input args
+        let vk_hash: [u8; 32] = {
+            let vk_hash_bytes_raw =
+                hex::decode("7d4e5f3a1c8b0e9d2f6a7c5b3d8e1f0a9c2b4e6d8f7a3c1b5e9d2f6a4c8b0e1d3f")
+                    .expect("invalid vk hash bytes");
+            vk_hash_bytes_raw.try_into().expect("invalid vk hash bytes")
+        };
+        let vk_scalar = ark_bn254::Fr::from_le_bytes_mod_order(&vk_hash);
+        // replace the very first base point in \gamma with `scalar_mul` of our constant public input `vk` of STARK circuit in ZKVM which hardcoded pegin&operator identifiers
+        // then the groth16 `vk` will be hardcoded pegin&operator identifiers
+        vk.gamma_abc_g1[0] = (vk.gamma_abc_g1[0] * vk_scalar).into_affine();
+
         let scalar: ark_bn254::Fr = ark_bn254::Fr::deserialize_uncompressed(&scalar[..]).unwrap();
         let scalars = [scalar];
 
