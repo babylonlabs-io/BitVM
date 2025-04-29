@@ -581,13 +581,13 @@ mod test {
             ark_groth16::VerifyingKey::deserialize_uncompressed(&vk_bytes[..]).unwrap();
 
         // this should be obtained from ENV or input args
-        let vk_hash: [u8; 32] = {
+        let vk_hash_bytes: [u8; 32] = {
             let vk_hash_bytes_raw =
                 hex::decode("7d4e5f3a1c8b0e9d2f6a7c5b3d8e1f0a9c2b4e6d8f7a3c1b5e9d2f6a4c8b0e1d3f")
                     .expect("invalid vk hash bytes");
             vk_hash_bytes_raw.try_into().expect("invalid vk hash bytes")
         };
-        let vk_scalar = ark_bn254::Fr::from_le_bytes_mod_order(&vk_hash);
+        let vk_scalar = ark_bn254::Fr::from_le_bytes_mod_order(&vk_hash_bytes);
         // replace the very first base point in \gamma with `scalar_mul` of our constant public input `vk` of STARK circuit in ZKVM which hardcoded pegin&operator identifiers
         // then the groth16 `vk` will be hardcoded pegin&operator identifiers
         vk.gamma_abc_g1[0] = (vk.gamma_abc_g1[0] * vk_scalar).into_affine();
