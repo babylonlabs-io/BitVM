@@ -1932,6 +1932,7 @@ version = "0.0.0"
 dependencies = [
  "arbitrary",
  "bitcoin",
+ "bitcoin-script",
  "bitcoin-script-stack",
  "bitvm",
  "blake3",
