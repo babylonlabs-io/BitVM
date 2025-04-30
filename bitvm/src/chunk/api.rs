@@ -590,7 +590,7 @@ mod test {
         let vk_scalar = ark_bn254::Fr::from_le_bytes_mod_order(&vk_hash_bytes);
         // replace the very first base point in \gamma with `scalar_mul` of our constant public input `vk` of STARK circuit in ZKVM which hardcoded pegin&operator identifiers
         // then the groth16 `vk` will be hardcoded pegin&operator identifiers
-        vk.gamma_abc_g1[0] = (vk.gamma_abc_g1[0] * vk_scalar).into_affine();
+        vk.gamma_abc_g1[0] = (vk.gamma_abc_g1[0] + vk.gamma_abc_g1[0] * vk_scalar).into_affine();
 
         let scalar: ark_bn254::Fr = ark_bn254::Fr::deserialize_uncompressed(&scalar[..]).unwrap();
         let scalars = [scalar];
